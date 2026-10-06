@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tick — Timer Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0d10; --panel:#131418; --raise:#1a1c21; --line:#25272e; --line2:#30333b;
+  --text:#ecedf0; --muted:#8b8f9a; --faint:#5d616b; --accent:#d7ff3a; --accent-ink:#0c0d10;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:380px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:22px 22px 40px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+.brand .dot{width:22px;height:22px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-weight:700;font-size:12px}
+.brand b{font-weight:600;letter-spacing:-.01em}
+.brand span{color:var(--faint);font-size:12px;margin-left:auto}
+section{border-top:1px solid var(--line);padding:18px 0 4px}
+section:first-of-type{border-top:0;padding-top:0}
+h3{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+label{display:block;font-size:12.5px;color:var(--muted);margin:0 0 6px}
+.field{margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=datetime-local],input[type=number],input[type=url],select{
+  width:100%;background:var(--raise);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 10px;font:inherit;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--line2);box-shadow:0 0 0 3px #ffffff0d}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px}
+.seg button{flex:1;white-space:nowrap;background:none;border:0;color:var(--muted);padding:7px 8px;border-radius:6px;font:inherit;font-size:12.5px;cursor:pointer}
+.seg button.on{background:var(--line2);color:var(--text)}
+.presets{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.preset{border:1px solid var(--line);border-radius:9px;padding:0;overflow:hidden;cursor:pointer;background:none;transition:transform .12s,border-color .12s}
+.preset:hover{transform:translateY(-1px)}
+.preset.on{border-color:var(--accent)}
+.preset i{display:block;height:34px}
+.preset em{display:block;font-style:normal;font-size:10.5px;color:var(--muted);padding:5px 0;background:var(--raise)}
+.colors{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sw{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--faint)}
+.sw input{appearance:none;-webkit-appearance:none;width:100%;height:34px;border:1px solid var(--line2);border-radius:8px;padding:0;background:none;cursor:pointer}
+.sw input::-webkit-color-swatch-wrapper{padding:3px}.sw input::-webkit-color-swatch{border:0;border-radius:5px}
+.sw input::-moz-color-swatch{border:0;border-radius:5px}
+.checks{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+.chip input{display:none}
+.chip:has(input:checked){color:var(--text);border-color:var(--line2);background:var(--line)}
+.hint{font-size:11.5px;color:var(--faint);margin-top:6px}
+main{display:flex;flex-direction:column;min-width:0}
+.top{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--line)}
+.top .meta{font:12px "JetBrains Mono",monospace;color:var(--faint);display:flex;gap:16px}
+.top .meta b{color:var(--muted);font-weight:500}
+.top .seg{margin-left:auto;width:auto}
+.stage{flex:1;overflow:auto;display:grid;place-items:center;padding:40px 24px;transition:background .25s}
+.stage.light{background:#eef0f3}.stage.dark{background:#1b1c20}
+.mail{width:100%;max-width:640px;background:#fff;border-radius:12px;box-shadow:0 30px 80px -30px #0008;overflow:hidden;transition:background .25s}
+.stage.dark .mail{background:#26272c}
+.mail header{padding:14px 20px;border-bottom:1px solid #0000000f;display:flex;gap:10px;align-items:center}
+.stage.dark .mail header{border-color:#ffffff12}
+.mail header i{width:28px;height:28px;border-radius:50%;background:#d9dce2}
+.mail header div{font-size:12px;color:#6b7080}.mail header strong{display:block;color:#1c1e24;font-size:13px}
+.stage.dark .mail header strong{color:#eee}
+.mail .body{padding:34px 40px 40px;text-align:center}
+.mail h1{margin:0 0 6px;font-size:22px;letter-spacing:-.02em;color:#14161b}
+.stage.dark .mail h1{color:#f2f2f2}
+.mail p{margin:0 0 24px;color:#6b7080;font-size:14px}
+.mail .slot{min-height:120px;display:grid;place-items:center}
+.mail img{display:block;margin:0 auto;max-width:100%;height:auto}
+.mail .cta{display:inline-block;margin-top:26px;background:#14161b;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none}
+.err{color:#ff7a7a;font-size:13px}
+.code{border-top:1px solid var(--line);background:var(--panel);padding:16px 24px 20px}
+.code .bar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.code .bar h3{margin:0}
+.code .bar .s{font-size:11.5px;color:var(--faint)}
+.btn{margin-left:auto;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:8px 14px;font:600 12.5px Inter,sans-serif;cursor:pointer}
+.btn.ghost{margin-left:0;background:var(--raise);color:var(--text);border:1px solid var(--line)}
+pre{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font:12px/1.55 "JetBrains Mono",monospace;color:#b9bdc7;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto}
+@media (max-width:900px){.app{grid-template-columns:1fr;height:auto}aside{border-right:0;border-bottom:1px solid var(--line)}.stage{padding:24px 12px}.mail .body{padding:24px 16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="dot">T</div><b>Tick</b><span>Timer builder</span></div>
+
+  <section>
+    <h3>Theme</h3>
+    <div class="presets" id="presets"></div>
+  </section>
+
+  <section>
+    <h3>Timing</h3>
+    <div class="field"><div class="seg" id="mode"><button data-v="fixed" class="on">Fixed deadline</button><button data-v="ever">Evergreen</button></div></div>
+    <div id="fixedF" class="field">
+      <label>Ends at (your local time)</label>
+      <input type="datetime-local" id="end">
+    </div>
+    <div id="everF" hidden>
+      <div class="row field">
+        <div><label>Window</label><input type="number" id="durN" value="48" min="1"></div>
+        <div><label>&nbsp;</label><select id="durU"><option value="h">hours</option><option value="m">minutes</option></select></div>
+      </div>
+      <div class="field">
+        <label>Start time merge tag</label>
+        <input type="text" id="from" placeholder="Your ESP's subscriber timestamp tag">
+        <div class="hint">Unix seconds or ISO date per subscriber. Empty or invalid → starts at open.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Colors</h3>
+    <div class="colors">
+      <div class="sw"><input type="color" id="bg">Bg</div>
+      <div class="sw"><input type="color" id="box">Box</div>
+      <div class="sw"><input type="color" id="fg">Digits</div>
+      <div class="sw"><input type="color" id="lc">Labels</div>
+      <div class="sw"><input type="color" id="sc">Colon</div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Type &amp; layout</h3>
+    <div class="row field">
+      <div><label>Typeface</label><select id="font"><option value="inter">Inter</option><option value="poppins">Poppins</option><option value="serif">Serif</option><option value="mono">Mono</option></select></div>
+      <div><label>Width (px)</label><input type="number" id="w" value="480" min="200" max="800" step="10"></div>
+    </div>
+    <div class="field"><label>Units</label>
+      <div class="checks" id="units">
+        <label class="chip"><input type="checkbox" value="d" checked>Days</label>
+        <label class="chip"><input type="checkbox" value="h" checked>Hours</label>
+        <label class="chip"><input type="checkbox" value="m" checked>Minutes</label>
+        <label class="chip"><input type="checkbox" value="s" checked>Seconds</label>
+      </div>
+    </div>
+    <div class="field"><label>Labels (comma separated — localize freely)</label><input type="text" id="l" value="Days,Hours,Minutes,Seconds"></div>
+    <div class="field checks">
+      <label class="chip"><input type="checkbox" id="boxes" checked>Boxes</label>
+      <label class="chip"><input type="checkbox" id="sep">Colons</label>
+      <label class="chip"><input type="checkbox" id="uc" checked>Uppercase labels</label>
+      <label class="chip"><input type="checkbox" id="loop">Loop</label>
+    </div>
+    <div class="field"><label>Corner radius</label><input type="range" id="r" min="0" max="0.5" step="0.01" value="0.18"></div>
+  </section>
+
+  <section>
+    <h3>After it ends</h3>
+    <div class="field"><label>Expired message</label><input type="text" id="exp" value="This offer has ended" maxlength="60"></div>
+    <div class="field"><label>Click-through link</label><input type="url" id="link" placeholder="https://"></div>
+  </section>
+</aside>
+
+<main>
+  <div class="top">
+    <div class="meta"><span>size <b id="mSize">–</b></span><span>render <b id="mMs">–</b></span><span>frames <b id="mFr">60</b></span></div>
+    <div class="seg" id="theme"><button data-v="light" class="on">Light inbox</button><button data-v="dark">Dark inbox</button></div>
+  </div>
+  <div class="stage light" id="stage">
+    <div class="mail">
+      <header><i></i><div><strong>Your Brand</strong>Last chance — the sale ends soon</div></header>
+      <div class="body">
+        <h1>The Fall Sale ends soon</h1>
+        <p>Up to 40% off everything. When the clock hits zero, it's gone.</p>
+        <div class="slot" id="slot"></div>
+        <a class="cta">Shop the sale</a>
+      </div>
+    </div>
+  </div>
+  <div class="code">
+    <div class="bar"><h3>Embed code</h3><span class="s" id="signed"></span><button class="btn ghost" id="copyUrl">Copy URL</button><button class="btn" id="copy">Copy HTML</button></div>
+    <pre id="html">…</pre>
+  </div>
+</main>
+</div>
+
+<script>
+const PRESETS={
+  midnight:{bg:'#0b0d12',box:'#1a1f2b',fg:'#ffffff',lc:'#8a93a6',sc:'#3b4252',font:'inter',boxes:1,r:.18,sep:0},
+  paper:{bg:'#faf7f2',box:'#ffffff',fg:'#1c1a17',lc:'#8c857a',sc:'#d8d2c7',font:'serif',boxes:1,r:.08,sep:0},
+  volt:{bg:'#0a0a0a',box:'#d7ff3a',fg:'#0a0a0a',lc:'#d7ff3a',sc:'#d7ff3a',font:'poppins',boxes:1,r:.5,sep:0},
+  minimal:{bg:'#ffffff',box:'#ffffff',fg:'#111111',lc:'#6b6b6b',sc:'#c4c4c4',font:'inter',boxes:0,r:0,sep:1},
+  terminal:{bg:'#050806',box:'#0c1a10',fg:'#39ff88',lc:'#2a8f55',sc:'#1d5e38',font:'mono',boxes:1,r:.06,sep:0},
+};
+const $=id=>document.getElementById(id);
+let mode='fixed', current=null, lastUrl='';
+
+// presets
+for(const [k,p] of Object.entries(PRESETS)){
+  const b=document.createElement('button'); b.className='preset'; b.dataset.k=k;
+  b.innerHTML=`<i style="background:linear-gradient(135deg,${p.bg} 50%,${p.boxes?p.box:p.fg} 50%)"></i><em>${k[0].toUpperCase()+k.slice(1)}</em>`;
+  b.onclick=()=>applyPreset(k); $('presets').append(b);
+}
+function applyPreset(k){
+  const p=PRESETS[k];
+  for(const c of ['bg','box','fg','lc','sc']) $(c).value=p[c];
+  $('font').value=p.font; $('boxes').checked=!!p.boxes; $('sep').checked=!!p.sep; $('r').value=p.r;
+  document.querySelectorAll('.preset').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+  update();
+}
+function seg(id,cb){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  $(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));cb(b.dataset.v)})}
+seg('mode',v=>{mode=v;$('fixedF').hidden=v!=='fixed';$('everF').hidden=v==='fixed';update()});
+seg('theme',v=>{$('stage').className='stage '+v});
+
+// default deadline: 3 days out, at the top of the hour
+const d=new Date(Date.now()+3*864e5); d.setMinutes(0,0,0);
+$('end').value=new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,16);
+
+function params(){
+  const q=new URLSearchParams();
+  if(mode==='fixed'){ q.set('end',new Date($('end').value).toISOString().replace(/\.\d+Z$/,'Z')); }
+  else{ q.set('dur',($('durN').value||48)+$('durU').value); if($('from').value.trim()) q.set('from',$('from').value.trim()); }
+  for(const c of ['bg','box','fg','lc','sc']) q.set(c,$(c).value.slice(1));
+  q.set('font',$('font').value); q.set('w',$('w').value);
+  const u=[...$('units').querySelectorAll('input:checked')].map(i=>i.value).join(''); q.set('u',u||'s');
+  // labels map positionally onto d,h,m,s
+  q.set('l',$('l').value);
+  q.set('boxes',$('boxes').checked?1:0); q.set('sep',$('sep').checked?1:0);
+  q.set('uc',$('uc').checked?1:0); if($('loop').checked) q.set('loop',1);
+  q.set('r',$('r').value); if($('exp').value) q.set('exp',$('exp').value);
+  if($('link').value) q.set('link',$('link').value);
+  return q;
+}
+
+let timer;
+function update(){ clearTimeout(timer); timer=setTimeout(render,180); }
+async function render(){
+  const tok=Symbol(); current=tok;
+  try{
+    const r=await fetch('/api/embed?'+params()); const j=await r.json();
+    if(current!==tok) return;
+    if(!r.ok) throw new Error(j.error);
+    lastUrl=j.url;
+    $('html').textContent=j.html;
+    $('signed').textContent=j.signed?'Signed URL':'Dev mode — unsigned';
+    const t0=performance.now();
+    const g=await fetch(j.url,{cache:'no-store'}); const blob=await g.blob();
+    if(current!==tok) return;
+    const img=new Image(); img.width=j.width; img.height=j.height; img.alt='Countdown preview';
+    img.src=URL.createObjectURL(blob);
+    $('slot').replaceChildren(img);
+    $('mSize').textContent=(blob.size/1024).toFixed(1)+' KB';
+    $('mMs').textContent=(g.headers.get('X-Render-Ms')||Math.round(performance.now()-t0))+' ms';
+    $('mFr').textContent=[...$('units').querySelectorAll('input:checked')].some(i=>i.value==='s')?'60':'1';
+  }catch(e){ $('slot').innerHTML=`<div class="err">${e.message}</div>`; }
+}
+document.querySelector('aside').addEventListener('input',update);
+async function copy(text,btn){ await navigator.clipboard.writeText(text); const o=btn.textContent; btn.textContent='Copied'; setTimeout(()=>btn.textContent=o,1200); }
+$('copy').onclick=e=>copy($('html').textContent,e.target);
+$('copyUrl').onclick=e=>copy(lastUrl,e.target);
+applyPreset('midnight');
+</script>
+</body>
+</html>
